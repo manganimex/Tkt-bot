@@ -1,12 +1,14 @@
 """
 Bot Telegram - Réception paiement (Transcash / PCS / Paysafecard / PayPal)
-Version optimisée pour Render (sans proxy)
+Version optimisée pour Render (avec serveur web fictif)
 """
 
 import asyncio
 import os
 import random
 import string
+from threading import Thread
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.error import NetworkError
@@ -20,6 +22,22 @@ ADMIN_USERNAME = "fashionfali"
 SUPPORT_USERNAME = "@MyconvertTx"
 PAYPAL_LINK = "https://www.paypal.me/MomooowDigiShop"
 # ================================================
+
+# Petit serveur web pour Render
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Bot is running")
+
+def start_web_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), Handler)
+    print(f"Web server started on port {port}")
+    server.serve_forever()
+
+# Lance le serveur web en arrière-plan
+Thread(target=start_web_server, daemon=True).start()
 
 TEXTES = {
     "fr": {
